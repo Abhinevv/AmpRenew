@@ -76,3 +76,10 @@ df.to_csv("battery_features_engineered.csv", index=False)
 print("✅ Feature engineering complete! Saved as 'battery_features_engineered.csv'")
 
 print(df.head())
+
+import pandas as pd
+
+df = pd.read_csv("battery_features_engineered.csv")
+print(df.info())
+print(df.describe())
+print(df.isnull().sum())
