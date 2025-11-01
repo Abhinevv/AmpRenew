@@ -77,9 +77,4 @@ print("✅ Feature engineering complete! Saved as 'battery_features_engineered.c
 
 print(df.head())
 
-import pandas as pd
 
-df = pd.read_csv("battery_features_engineered.csv")
-print(df.info())
-print(df.describe())
-print(df.isnull().sum())

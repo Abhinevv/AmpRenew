@@ -14,12 +14,12 @@ import difflib
 warnings.filterwarnings("ignore")
 
 # ===== STEP 1: LOAD DATA =====
-print("\n🚀 Loading dataset ...")
+print("\n Loading dataset ...")
 df = pd.read_csv("battery_features_engineered.csv")
 
 # Normalize column names (strip whitespace)
 df.columns = df.columns.str.strip()
-print("✅ Dataset loaded successfully!")
+print(" Dataset loaded successfully!")
 print("Shape:", df.shape)
 print("Columns:", list(df.columns))
 print(df.head(3))
@@ -55,13 +55,13 @@ if target_col is None:
     if best_matches:
         best_col = max(best_matches, key=best_matches.get)
         if best_matches[best_col] >= 0.60:
-            print(f"⚠️ Did not find exact 'SOH (%)' header — using best match: '{best_col}' (score {best_matches[best_col]:.2f})")
+            print(f" Did not find exact 'SOH (%)' header — using best match: '{best_col}' (score {best_matches[best_col]:.2f})")
             target_col = best_col
 
 if target_col is None:
     # final fallback: show available columns and raise clear error
     print("\nAvailable columns:", df.columns.tolist())
-    raise ValueError("❌ 'SOH (%)' column not found and no close match detected. "
+    raise ValueError(" 'SOH (%)' column not found and no close match detected. "
                      "Please include a target column (e.g. 'SOH (%)' or 'SOH').")
 
 # Now we have the target column
@@ -79,7 +79,7 @@ X = df.drop(columns=cols_to_drop + [target_col], errors='ignore')
 print("Feature count:", X.shape[1])
 
 # ===== STEP 3: TRAIN/TEST SPLIT =====
-print("\n📊 Splitting dataset ...")
+print("\n Splitting dataset ...")
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 print(f"Training samples: {len(X_train)}, Testing samples: {len(X_test)}")
 
@@ -93,13 +93,13 @@ rf_mae = mean_absolute_error(y_test, y_pred_rf)
 rf_rmse = np.sqrt(mean_squared_error(y_test, y_pred_rf))
 rf_r2 = r2_score(y_test, y_pred_rf)
 
-print("\n🎯 Random Forest Performance:")
+print("\n Random Forest Performance:")
 print(f"MAE  : {rf_mae:.4f}")
 print(f"RMSE : {rf_rmse:.4f}")
 print(f"R²   : {rf_r2:.4f}")
 
 # ===== STEP 5: ADVANCED MODEL - XGBOOST =====
-print("\n⚡ Training XGBoost model ...")
+print("\n Training XGBoost model ...")
 xgb_model = xgb.XGBRegressor(
     n_estimators=500,
     learning_rate=0.05,
@@ -115,7 +115,7 @@ xgb_mae = mean_absolute_error(y_test, y_pred_xgb)
 xgb_rmse = np.sqrt(mean_squared_error(y_test, y_pred_xgb))
 xgb_r2 = r2_score(y_test, y_pred_xgb)
 
-print("\n🚀 XGBoost Performance:")
+print("\n XGBoost Performance:")
 print(f"MAE  : {xgb_mae:.4f}")
 print(f"RMSE : {xgb_rmse:.4f}")
 print(f"R²   : {xgb_r2:.4f}")
@@ -141,7 +141,7 @@ grid = GridSearchCV(
 
 grid.fit(X_train, y_train)
 best_model = grid.best_estimator_
-print("\n✅ Best Hyperparameters Found:")
+print("\n Best Hyperparameters Found:")
 print(grid.best_params_)
 
 # Evaluate tuned model
@@ -156,7 +156,7 @@ print(f"RMSE : {rmse:.4f}")
 print(f"R²   : {r2:.4f}")
 
 # ===== STEP 7: VISUALIZATION =====
-print("\n📈 Plotting Actual vs Predicted SOH ...")
+print("\n Plotting Actual vs Predicted SOH ...")
 plt.figure(figsize=(6,6))
 plt.scatter(y_test, y_pred_best, alpha=0.6)
 plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
@@ -186,7 +186,7 @@ if 'Charging Cycles' in df.columns:
     slope, intercept = coeffs
 
     if abs(slope) < 1e-8:
-        print("⚠️ Predicted SOH trend slope is ~0. Cannot reliably estimate EOL cycles (slope≈0).")
+        print(" Predicted SOH trend slope is ~0. Cannot reliably estimate EOL cycles (slope≈0).")
         predicted_cycle_EOL = np.nan
         rul_cycles = np.nan
         rul_years = np.nan
@@ -196,15 +196,15 @@ if 'Charging Cycles' in df.columns:
         rul_cycles = predicted_cycle_EOL - current_cycle
         rul_years = rul_cycles / 250  # assuming 250 cycles per year
 
-    print("\n🔋 Estimated Remaining Useful Life:")
+    print("\n Estimated Remaining Useful Life:")
     print(f"Cycles Remaining: {rul_cycles}")
     print(f"Years Remaining : {rul_years}")
 else:
-    print("⚠️ 'Charging Cycles' column missing, skipping RUL estimation.")
+    print(" 'Charging Cycles' column missing, skipping RUL estimation.")
 
 # ===== STEP 9: SAVE MODEL =====
-print("\n💾 Saving final trained model ...")
+print("\n Saving final trained model ...")
 joblib.dump(best_model, "soh_xgboost_model.pkl")
-print("✅ Model saved as 'soh_xgboost_model.pkl'")
+print(" Model saved as 'soh_xgboost_model.pkl'")
 
-print("\n✅ Phase 3 completed successfully!")
+print("\n Phase 3 completed successfully!")
