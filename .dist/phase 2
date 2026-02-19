@@ -1,0 +1,80 @@
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+
+# Load your dataset
+df = pd.read_csv(r"C:\Users\Atharva Pednekar\Pccoe project\AmpRenew\.dist\ev_battery_charging_data.csv")
+
+# Sort by Charging Cycles (chronological order of battery use)
+df = df.sort_values(by=["Charging Cycles"]).reset_index(drop=True)
+
+# ----- BASIC DERIVED FEATURES -----
+
+# 1. Temperature difference (Battery - Ambient)
+df['temp_diff'] = df['Battery Temp (°C)'] - df['Ambient Temp (°C)']
+
+# 2. Voltage-to-Current ratio (approx. internal resistance indicator)
+df['voltage_current_ratio'] = df['Voltage (V)'] / (df['Current (A)'].abs() + 1e-6)
+
+# 3. Efficiency drop (difference from previous cycle)
+df['efficiency_drop'] = df['Efficiency (%)'].diff().fillna(0)
+
+# 4. Degradation slope (change in degradation rate per cycle)
+df['degradation_slope'] = df['Degradation Rate (%)'].diff().fillna(0)
+
+# 5. Efficiency-to-Temperature ratio (measures efficiency loss under heat)
+df['eff_temp_ratio'] = df['Efficiency (%)'] / (df['Battery Temp (°C)'] + 273.15)  # avoid division by 0°C
+
+# ----- ROLLING TREND FEATURES (use last 5 cycles) -----
+k = 5
+
+df['rolling_efficiency_mean_5'] = (
+    df['Efficiency (%)'].rolling(k).mean().fillna(method='bfill')
+)
+
+df['rolling_deg_rate_mean_5'] = (
+    df['Degradation Rate (%)'].rolling(k).mean().fillna(method='bfill')
+)
+
+df['rolling_temp_mean_5'] = (
+    df['Battery Temp (°C)'].rolling(k).mean().fillna(method='bfill')
+)
+
+# Rolling slope of degradation (how fast it's increasing)
+def rolling_slope(x):
+    if len(x) < 2:
+        return 0
+    idx = np.arange(len(x))
+    return np.polyfit(idx, x, 1)[0]  # slope of linear fit
+
+df['rolling_deg_slope_5'] = (
+    df['Degradation Rate (%)'].rolling(k).apply(rolling_slope).fillna(0)
+)
+
+# ----- CATEGORICAL ENCODING -----
+label_cols = ['Charging Mode', 'Battery Type', 'EV Model']
+
+for col in label_cols:
+    le = LabelEncoder()
+    df[col] = le.fit_transform(df[col].astype(str))
+
+# ----- SCALING NUMERIC FEATURES -----
+numeric_cols = [
+    'SOC (%)', 'Voltage (V)', 'Current (A)',
+    'Battery Temp (°C)', 'Ambient Temp (°C)', 'Charging Duration (min)',
+    'Degradation Rate (%)', 'Efficiency (%)',
+    'temp_diff', 'voltage_current_ratio', 'efficiency_drop', 'degradation_slope',
+    'eff_temp_ratio', 'rolling_efficiency_mean_5', 'rolling_deg_rate_mean_5',
+    'rolling_temp_mean_5', 'rolling_deg_slope_5'
+]
+
+scaler = StandardScaler()
+df[numeric_cols] = scaler.fit_transform(df[numeric_cols])
+
+# ----- SAVE THE FEATURE-ENGINEERED DATA -----
+df.to_csv("battery_features_engineered.csv", index=False)
+print("✅ Feature engineering complete! Saved as 'battery_features_engineered.csv'")
+
+print(df.head())
+
+

@@ -1,0 +1,13 @@
+<html>
+        <head>
+            <title>Battery SOH Prediction</title>
+        </head>
+        <body style="font-family:Arial; margin:50px;">
+            <h2> EV Battery Health Prediction</h2>
+            <p>Upload a CSV file containing battery data to get predicted SOH (%) and Remaining Useful Life.</p>
+            <form action="/predict" enctype="multipart/form-data" method="post">
+                <input name="file" type="file" accept=".csv" required>
+                <input type="submit" value="Upload and Predict">
+            </form>
+        </body>
+    </html>
